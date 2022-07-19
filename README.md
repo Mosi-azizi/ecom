@@ -1,0 +1,1 @@
+# Online shopping (developed by Django and React)
