@@ -23,40 +23,42 @@ def signin(request):
     username = request.POST['email']
     password = request.POST['password']
 
-    if not re.match("[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$",username):
-        return  JsonResponse({'errrrror':'Enter a valid email'})
+    # validation part
+    if not re.match("^[\w\.\+\-]+\@[\w]+\.[a-z]{2,3}$", username):
+        return JsonResponse({'error': 'Enter a valid email'})
 
     if len(password)<3:
         return JsonResponse({'error':'Password needs to be at least of 3 ...'})
 
     UserModel = get_user_model()
 
-    try :
+    try:
         user = UserModel.objects.get(email=username)
 
-        if user.check_passwrod(password):
-            usr_dict = UserModel.objects.filter(email=username).values().first()
+        if user.check_password(password):
+            usr_dict = UserModel.objects.filter(
+                email=username).values().first()
             usr_dict.pop('password')
 
             if user.session_token != "0":
                 user.session_token = "0"
                 user.save()
-                return JsonResponse({'error':'Previous session exists!'})
+                return JsonResponse({'error': "Previous session exists!"})
 
             token = generate_session_token()
             user.session_token = token
             user.save()
-            login(request,user)
-            return JsonResponse({'token': token,'user': usr_dict})
+            login(request, user)
+            return JsonResponse({'token': token, 'user': usr_dict})
         else:
-            return  JsonResponse({'error':'Invalid Password'})
-
+            return JsonResponse({'error': 'Invalid password'})
     except UserModel.DoseNotExist:
         return JsonResponse({'error':'Invalid Email'})
 
 def signout(request, id):
     logout(request)
-    UserModel = get_user_model()
+
+    UserModel= get_user_model()
 
     try:
         user = UserModel.objects.get(pk=id)
